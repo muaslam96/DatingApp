@@ -28,45 +28,36 @@ namespace YourAppNamespace
                 options.UseSqlite(_config.GetConnectionString("DefaultConnection"));
             });
             services.AddControllersWithViews();  // For MVC apps
-            // For API-only apps, you might just use:
-            // services.AddControllers();
 
-            // Register any additional services your app needs
-            // Example: services.AddDbContext<YourDbContext>();
+            services.AddCors(options =>
+    {
+        options.AddPolicy("CorsPolicy",
+            builder => builder.WithOrigins("https://localhost:4200")
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials());
+    });
         }
 
-        // This method is called by the runtime to configure the HTTP request pipeline.
+        //This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                // Development-specific middleware
                 app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // Middleware for production (e.g., exception handler, HSTS, etc.)
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
             }
 
             app.UseHttpsRedirection();  // Enforces HTTPS
-            app.UseStaticFiles();  // Serves static files (e.g., .css, .js, etc.)
-
+            
             app.UseRouting();  // Enables routing
+
+            app.UseCors("CorsPolicy"); // Enable CORS
 
             app.UseAuthorization();  // Enables authorization
 
-            // Define the endpoint routes for the app (e.g., MVC routes)
             app.UseEndpoints(endpoints =>
-            {
-                // Default route for MVC app
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-                // For API apps, you might use:
-                // endpoints.MapControllers();
+            {               
+                endpoints.MapControllers();       
             });
         }
     }
