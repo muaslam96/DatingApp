@@ -1,24 +1,25 @@
+using System.Text;
 using API.Data;
+using API.Extensions;
+using API.Interfaces;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", policy =>
-    {
-        policy.WithOrigins("https://localhost:4200") // Replace with the Angular app URL
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();;
-    });
-});
+var config = builder.Configuration;
+
+builder.Services.AddApplicationServices(config); //We have created a new class file where all our services are being added to the builder in order to reduce the 
+                                                 //line of code in program CS class.
+builder.Services.AddIdentityServices(config); //Same thing we did above, is now being done for identification which refers to all the tokanization processes.
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -38,6 +39,9 @@ app.UseCors("CorsPolicy");
 //app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+app.UseAuthentication(); //Enable user authentication using bearer / JWT token provided in the request.
+
 app.UseAuthorization();
 
 app.MapControllers();
